@@ -17,14 +17,10 @@ function backtest_engine(df_in::DataFrame, portfolio::Int64,long::Int64,short::I
     SMA_long = sma(df,long);
     SMA_short = sma(df,short);
 
-    SMA_diff = SMA_short - SMA_long; # if positiv we should be in the market!
+    # if positiv we should be in the market!
+    SMA_diff = SMA_short - SMA_long; 
 
     df.Signals = get_crossovers(SMA_diff); 
-
-    #############
-    # INCLUDE TRADING FEES!!
-    # DONE
-    #############
 
     # loop over the time series
     for i in 2:length(df.Signals)

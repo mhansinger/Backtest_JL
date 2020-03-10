@@ -1,3 +1,4 @@
 # gitignore
 
 *.ipynb
+*.ipynb_checkpoints
