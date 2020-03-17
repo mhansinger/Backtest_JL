@@ -1,3 +1,5 @@
+#!/usr/local/julia-1.3.1/bin/julia
+
 # run the backtester
 
 using Pkg, Plots 
@@ -9,7 +11,9 @@ include("./backtest_tools.jl")
 using .backtest_tools, .backtester
 
 
-mypath = "/Users/Maxi/Projects/Julia/backtest/XXBTZEUR_Series.csv";
+mypath = "AltoTrader/Virtual/XETHZEUR/XETHZEUR_data/XETHZEUR_Series.csv";
+
+println("Data path is: "+mypath);
 
 df = get_dataframe(mypath);
 
