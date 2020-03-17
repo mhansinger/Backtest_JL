@@ -5,6 +5,12 @@
 using Pkg #, Plots 
 #Pkg.add("Benchmarks")
 #using Benchmarks
+
+# activate THIS environment
+#tempdir = mktempdir()
+Pkg.activate(".")
+
+
 include("./backtester.jl")
 include("./backtest_tools.jl")
 
