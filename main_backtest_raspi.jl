@@ -11,7 +11,7 @@ include("./backtest_tools.jl")
 using .backtest_tools, .backtester
 
 
-mypath = "AltoTrader/Virtual/XETHZEUR/XETHZEUR_data/XETHZEUR_Series.csv";
+mypath = "~/AltoTrader/Virtual/XETHZEUR/XETHZEUR_data/XETHZEUR_Series.csv";
 
 println("Data path is: "+mypath);
 
