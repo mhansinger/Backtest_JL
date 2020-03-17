@@ -2,7 +2,7 @@
 
 # run the backtester
 
-using Pkg, Plots 
+using Pkg #, Plots 
 #Pkg.add("Benchmarks")
 #using Benchmarks
 include("./backtester.jl")
