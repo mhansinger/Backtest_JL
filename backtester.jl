@@ -5,13 +5,14 @@ module backtester
 include("./backtest_tools.jl")
 using .backtest_tools, DataFrames, Statistics, CSV
 
-export backtest_engine
+export backtest_engine, loop_portfolios
 
-function backtest_engine(df_in::DataFrame, portfolio::Int64,long::Int64,short::Int64,fee::Float64)
+function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,short::Int64,fee::Float64)
     df = df_in;
-    df.Portfolio = ones(length(df.Price)) * portfolio;  # set the portfolio vector, initialize with start portfolio
+    df.Portfolio = ones(length(df.Price)) * investment_;  # set the portfolio vector, initialize with start portfolio
     df.Market_pos = zeros(length(df.Price));  # 0 means we are not in the market, 1 we are in
     df.Shares = zeros(length(df.Price));      # number of shares
+
 
     # compute the long and short SMA
     SMA_long = sma(df,long);
@@ -59,6 +60,23 @@ function backtest_engine(df_in::DataFrame, portfolio::Int64,long::Int64,short::I
     end
 
     return df
+
+end
+
+function loop_portfolios(df_in::DataFrame, investment_::Float64,longs_::Array{Int64,1}, shorts_::Array{Int64,1})
+
+    # store all end_prices to plot a heat map
+    heat_map = zeros((length(longs_), length(shorts_)));
+
+    for (l_id, l) in enumerate(longs_)
+        for (s_id,s) in enumerate(shorts_)
+            df_new = backtest_engine(df_in,investment_,l,s,0.005);
+            println(df_new.Portfolio[end])
+            heat_map[l_id,s_id] = df_new.Portfolio[end];
+        end
+    end
+
+    return heat_map
 
 end
 
