@@ -26,12 +26,12 @@ df = get_dataframe(mypath);
 # plot!(df.Price/df.Price[1],label="Price")
 
 
-longs=collect(3000:500:7000);
-shorts = collect(300:100:800);
+longs=collect(3000:50:7000);
+shorts = collect(300:20:900);
 
 longs=convert(Array{Int64}, longs)
 
-df_new = copy(df);
+#df_new = copy(df);
 
 #let         # set the loop into a global scope
 
@@ -42,7 +42,7 @@ println(" ");
 sleep(3);
 
 # loop over the different short/long window combinations
-heat_map = loop_portfolios(df,investment,longs,shorts);
+@time heat_map = loop_portfolios_threads(df,investment,longs,shorts);
 
 # plot the heatmap
 heatmap(shorts, longs, heat_map,title="best price heat map",xlabel="short",ylabel="long");
