@@ -8,7 +8,7 @@ using .backtest_tools, DataFrames, Statistics, CSV
 export backtest_engine, loop_portfolios, loop_portfolios_threads
 
 function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,short::Int64,fee::Float64)
-    df = deepcopy(df_in);
+    df = deepcopy(df_in);           # seemed to solve the probelm
     df.Portfolio = ones(length(df.Price)) * investment_;  # set the portfolio vector, initialize with start portfolio
     df.Market_pos = zeros(length(df.Price));  # 0 means we are not in the market, 1 we are in
     df.Shares = zeros(length(df.Price));      # number of shares

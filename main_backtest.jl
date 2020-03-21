@@ -13,7 +13,9 @@ using .backtest_tools, .backtester
 
 
 #mypath = "/Users/Maxi/Projects/Julia/backtest/XXBTZEUR_Series.csv";
-mypath = "./XXBTZEUR_Series.csv";
+mypath = "./XETHZEUR_Series.csv";
+
+println(mypath);
 
 investment = 1000.0;
 
@@ -26,8 +28,8 @@ df = get_dataframe(mypath);
 # plot!(df.Price/df.Price[1],label="Price")
 
 
-longs=collect(5000:50:7000);
-shorts = collect(400:20:800);
+longs=collect(5000:25:7000);
+shorts = collect(400:10:900);
 
 longs=convert(Array{Int64}, longs)
 
@@ -42,21 +44,24 @@ println("With BUY and HODL you have: ",df.Price[end]*investment/df.Price[1]);
 println(" ");
 sleep(3);
 
-# loop over the different short/long window combinations
-@time heat_map = loop_portfolios(df,investment,longs,shorts);
+# # loop over the different short/long window combinations
+# @time heat_map = loop_portfolios(df,investment,longs,shorts);
 
+println(" ");
+println("##########################################################");
+println(" ");
 @time heat_map_t = loop_portfolios_threads(df,investment,longs,shorts);
 
 
-max_heatmap = findmax(heat_map);
+# max_heatmap = findmax(heat_map);
 
-best_portfolio = max_heatmap[1];
-best_short = shorts[max_heatmap[2][2]];
-best_long = longs[max_heatmap[2][1]];
+# best_portfolio = max_heatmap[1];
+# best_short = shorts[max_heatmap[2][2]];
+# best_long = longs[max_heatmap[2][1]];
 
-println("\nbest portfolio is: ",best_portfolio);
-println("best short window is: ",best_short);
-println("best long window is: ",best_long);
+# println("\nbest portfolio is: ",best_portfolio);
+# println("best short window is: ",best_short);
+# println("best long window is: ",best_long);
 
 
 max_heatmap_t = findmax(heat_map_t);
@@ -71,8 +76,8 @@ println("best long window is: ",best_long_t);
 
 #end     # end let
 
-# # plot the heatmap
-display(heatmap(shorts, longs, heat_map,title="best price heat map",xlabel="short",ylabel="long"))
+# # # plot the heatmap
+# display(heatmap(shorts, longs, heat_map,title="best price heat map",xlabel="short",ylabel="long"))
 
 # plot the heatmap
 display(heatmap(shorts, longs, heat_map_t,title="best price heat map parallel",xlabel="short",ylabel="long"))
