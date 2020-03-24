@@ -21,15 +21,18 @@ investment = 1000.0;
 
 df = get_dataframe(mypath);
 
-#@time df = backtest_engine(df,investment,10000,1000,0.005);
+# only for test
+#df = df[20000:end,:];
+
+#@time df = backtest_engine(df,investment,10000,1000,0.0026);
 #Signals = get_crossovers(df.Price)
 
 # plot(df.Portfolio/df.Portfolio[1],label="Portfolio")
 # plot!(df.Price/df.Price[1],label="Price")
 
 
-longs=collect(5000:25:7000);
-shorts = collect(400:10:900);
+longs=collect(1000:50:7000);
+shorts = collect(100:20:600);
 
 longs=convert(Array{Int64}, longs)
 
