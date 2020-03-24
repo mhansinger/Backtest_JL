@@ -4,7 +4,7 @@ module backtest_tools
 using DataFrames, CSV, Gadfly, Statistics
 
 
-export get_dataframe, sma, ema, get_crossovers 
+export get_dataframe, sma, ema, get_crossovers, smstd
 
 # reads the data csv file
 function get_dataframe(path)
@@ -16,6 +16,8 @@ end
 
 
 function sma(df::DataFrame, window::Int64)
+    # sliding moving average
+    # return: Array
 
     X = df.Price[:]
     if window < 1 || length(X) < window
@@ -66,5 +68,39 @@ function get_crossovers(SMA_diff)
 
     return Signals
 end
+
+function smstd(df::DataFrame, window::Int64)
+    # sliding moving standard deviation
+    # return: Array
+    
+    X = df.Price[:]
+    if window < 1 || length(X) < window
+        return X
+    end
+
+    Y::Array{Union{Float64},1} = zeros(window-1)#missings(window-1)
+
+    for i in window:length(X)
+        push!(Y, std(X[i-window+1:i]))
+    end
+
+    return Y
+end
+
+
+
+
+# function makerunningstd(::Type{T} = Float64) where T
+#     ∑x = ∑x² = zero(T)
+#     n = 0
+#     function runningstd(x)
+#         ∑x  += x
+#         ∑x² += x ^ 2
+#         n   += 1
+#         s   = ∑x² / n - (∑x / n) ^ 2
+#         return s
+#     end
+#     return runningstd
+# end
 
 end
