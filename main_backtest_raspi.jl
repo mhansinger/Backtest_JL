@@ -1,68 +1,88 @@
-#!/usr/local/julia-1.3.1/bin/julia
-
 # run the backtester
 
-using Pkg #, Plots 
-#Pkg.add("Benchmarks")
-#using Benchmarks
 
-# activate THIS environment
-#tempdir = mktempdir()
+using Pkg, Plots 
+pyplot()    # plotting backend
+Plots.default(overwrite_figure=false)
+
 Pkg.activate(".")
-
-
+#using Benchmarks
 include("./backtester.jl")
 include("./backtest_tools.jl")
 
 using .backtest_tools, .backtester
 
 
-mypath = "~/AltoTrader/Virtual/XETHZEUR/XETHZEUR_data/XETHZEUR_Series.csv";
+#mypath = "/Users/Maxi/Projects/Julia/backtest/XXBTZEUR_Series.csv";
+mypath = "./XETHZEUR_data/XETHZEUR_Series.csv";
 
-println("Data path is: "+mypath);
+println(mypath);
+
+investment = 1000.0;
 
 df = get_dataframe(mypath);
 
-@time df = backtest_engine(df,1000,10000,1000,0.005);
+# only for test
+df = df[70000:end,:];
+
+#@time df = backtest_engine(df,investment,10000,1000);
 #Signals = get_crossovers(df.Price)
 
-plot(df.Portfolio/df.Portfolio[1],label="Portfolio")
-plot!(df.Price/df.Price[1],label="Price")
+# plot(df.Portfolio/df.Portfolio[1],label="Portfolio")
+# plot!(df.Price/df.Price[1],label="Price")
 
 
-longs=collect(1000:20:5000)
-shorts = collect(100:10:1000)
+longs=collect(1000:50:7000);
+shorts = collect(100:20:600);
 
 longs=convert(Array{Int64}, longs)
 
-df_new = copy(df);
+#df_new = copy(df);
 
-let         # put the loop into a global scope
-best_portfolio=0.0;
-best_s = 0;
-best_l = 0;
+#let         # set the loop into a global scope
 
-a=1;
-
-println("best_portfolio: ",best_portfolio);
-
-for l in longs
-    for s in shorts
-        df_new = backtest_engine(df,1000,l,s,0.005);
-        println(df_new.Portfolio[end])
-        if df_new.Portfolio[end] > best_portfolio
-            best_portfolio = df_new.Portfolio[end];
-            best_s = s;
-            best_l = l;
-        end
-    end
-end
-end
-
+# println("Length of the time series: ", length(df));
+# println("");
+println("Initial investment: ",investment);
+println("With BUY and HODL you have: ",df.Price[end]*investment/df.Price[1]);
 println(" ");
-println("best_s: ", best_s);
-println("best_l: ", best_l);
-println("best_portfolio: ", best_portfolio);
+sleep(3);
+
+# loop over the different short/long window combinations
+@time heat_map = loop_portfolios(df,investment,longs,shorts);
+
+# println(" ");
+# println("##########################################################");
+# println(" ");
+# @time heat_map_t = loop_portfolios_threads(df,investment,longs,shorts);
 
 
+max_heatmap = findmax(heat_map);
 
+best_portfolio = max_heatmap[1];
+best_short = shorts[max_heatmap[2][2]];
+best_long = longs[max_heatmap[2][1]];
+
+println("\nbest portfolio is: ",best_portfolio);
+println("best short window is: ",best_short);
+println("best long window is: ",best_long);
+
+
+# max_heatmap_t = findmax(heat_map_t);
+
+# best_portfolio_t = max_heatmap_t[1];
+# best_short_t = shorts[max_heatmap_t[2][2]];
+# best_long_t = longs[max_heatmap_t[2][1]];
+
+# println("\nbest portfolio parallel is: ",best_portfolio_t);
+# println("best short window is: ",best_short_t);
+# println("best long window is: ",best_long_t);
+
+#end     # end let
+
+# # # plot the heatmap
+# display(heatmap(shorts, longs, heat_map,title="best price heat map",xlabel="short",ylabel="long"))
+
+# plot the heatmap
+p=heatmap(shorts, longs, heat_map_t,title="best price heat map parallel",xlabel="short",ylabel="long");
+savefig(p,"heatmap.pdf");

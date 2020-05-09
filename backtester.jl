@@ -25,9 +25,13 @@ function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,shor
     SMA_short = sma(df,short);
 
     STD_long = smstd(df,long);
+    STD_short = smstd(df,short);
 
     # upper bollinger band
-    bollinger_up = SMA_long + STD_long;
+    bollinger_up = SMA_long + 2*STD_short;
+
+    # upper bollinger band
+    bollinger_low = SMA_long - 2*STD_short;
 
     # if positiv we should be in the market!
     SMA_diff = SMA_short - SMA_long; 
@@ -40,11 +44,11 @@ function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,shor
     # last_buy = 1000;
 
     # set this flag to ture if emergency sell has been issued
-    #exit_flag = false;
+    exit_flag = false;
 
     # loop over the time series
     for i in 2:length(df.Signals)
-        if df.Signals[i] == 1 && df.Market_pos[i-1] == 0 #&& (df.Price[i] > bollinger_up[i])#&& exit_flag==false
+        if df.Signals[i] == 1 && df.Market_pos[i-1] == 0 && exit_flag==false #&& (df.Price[i] > bollinger_up[i])#
             #println("BUY");
             #BUY: if Signal says yes and we are not in yet
             df.Portfolio[i] = df.Portfolio[i-1]*(1-fee);
@@ -57,7 +61,8 @@ function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,shor
             last_buy = df.Price[i];
             #println("Last buy: ",last_buy);
 
-        elseif df.Signals[i] == -1 && df.Market_pos[i-1] == 1
+        elseif df.Signals[i] == -1 && df.Market_pos[i-1] == 1 && exit_flag==false
+            # We are in the market but shoud sell!
             #println("SELL");
             #SELL: if Signal says sell your shares and we're still in
             df.Portfolio[i] = (df.Shares[i-1] * df.Price[i])*(1-fee);
@@ -70,31 +75,65 @@ function backtest_engine(df_in::DataFrame, investment_::Float64,long::Int64,shor
             df.Portfolio[i] = df.Portfolio[i-1];
             df.Shares[i] = 0;
             df.Market_pos[i] = 0;   # we are out
-            exit_flag = false;      # reset exit flag
+            # reset exit flag in case of the emergency was called
+            exit_flag = false;      
 
             #println("SHORT");
 
-        elseif df.Signals[i] == 0 && df.Market_pos[i-1] == 1
-        # we are in the market
+        # elseif df.Signals[i] == 0 && df.Market_pos[i-1] == 1
+        # # we are in the market
 
-            # # emergency sell if the price drops to fast
-            # if  last_buy*exit_factor > df.Price[i] 
-            #     exit_flag = true;
-            #     df.Portfolio[i] = (df.Shares[i-1] * df.Price[i])*(1-fee);
-            #     df.Shares[i] = 0;
-            #     # update Market_pos
-            #     df.Market_pos[i] = 0; # we are out
-            #     println("####################");
-            #     println("Emergency exit!");
-            #     println("####################");
+        #     # emergency sell if the price drops below the short SMA
+        #     if  df.Price[i] < SMA_short[i]
+        #         exit_flag = true;
+        #         df.Portfolio[i] = (df.Shares[i-1] * df.Price[i])*(1-fee);
+        #         df.Shares[i] = 0;
+        #         # update Market_pos
+        #         df.Market_pos[i] = 0; # we are out
+        #         println("####################");
+        #         println("Emergency exit!");
+        #         println("####################");
+
+        elseif df.Signals[i] == 0 && df.Market_pos[i-1] == 1 && df.Price[i] < 0#bollinger_low[i]
+        # we are in the market and need emergency sell if the price drops below the long SMA
+            exit_flag = true;
+            df.Portfolio[i] = (df.Shares[i-1] * df.Price[i])*(1-fee);
+            df.Shares[i] = 0;
+            # update Market_pos
+            df.Market_pos[i] = 0; # we are out
+            # println("####################");
+            # println("Emergency exit!");
+            # println("####################");
                 
-            # else
+        elseif df.Signals[i] == 0 && df.Market_pos[i-1] == 1
             # we stay in the market
             df.Shares[i] = df.Shares[i-1];
             df.Portfolio[i] = df.Shares[i] * df.Price[i];
             df.Market_pos[i] = 1; # we are in
             #println("LONG");
             #end
+
+        elseif df.Signals[i] == 1 && df.Market_pos[i-1] == 0 && exit_flag==true
+            # signal says we should buy but it was an emergency exit: dont buy, stay out
+            # update Portfolio
+            df.Portfolio[i] = df.Portfolio[i-1];
+            df.Shares[i] = 0;
+            df.Market_pos[i] = 0;   # we are out
+
+        elseif exit_flag==true
+            # we are not in the Market, signals say stay out: update Portfolio
+            df.Portfolio[i] = df.Portfolio[i-1];
+            df.Shares[i] = 0;
+            df.Market_pos[i] = 0;   # we are out
+
+        elseif df.Signals[i]==-1 && df.Market_pos[i-1]==0
+            # we are not in the Market, signals say stay out: update Portfolio
+            df.Portfolio[i] = df.Portfolio[i-1];
+            df.Shares[i] = 0;
+            df.Market_pos[i] = 0;   # we are out
+
+        else
+            println("ELSE");
         end
 
     end

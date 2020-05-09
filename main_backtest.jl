@@ -1,5 +1,6 @@
 # run the backtester
 
+
 using Pkg, Plots 
 pyplot()    # plotting backend
 Plots.default(overwrite_figure=false)
@@ -22,17 +23,17 @@ investment = 1000.0;
 df = get_dataframe(mypath);
 
 # only for test
-#df = df[20000:end,:];
+df = df[80000:end,:];
 
-#@time df = backtest_engine(df,investment,10000,1000,0.0026);
+#@time df = backtest_engine(df,investment,10000,1000);
 #Signals = get_crossovers(df.Price)
 
 # plot(df.Portfolio/df.Portfolio[1],label="Portfolio")
 # plot!(df.Price/df.Price[1],label="Price")
 
 
-longs=collect(1000:50:7000);
-shorts = collect(100:20:600);
+longs=collect(1200:50:5000);
+shorts = collect(300:10:600);
 
 longs=convert(Array{Int64}, longs)
 
@@ -41,11 +42,8 @@ longs=convert(Array{Int64}, longs)
 #let         # set the loop into a global scope
 
 # println("Length of the time series: ", length(df));
-# println("");
-println("Initial investment: ",investment);
-println("With BUY and HODL you have: ",df.Price[end]*investment/df.Price[1]);
-println(" ");
-sleep(3);
+
+#sleep(3);
 
 # # loop over the different short/long window combinations
 # @time heat_map = loop_portfolios(df,investment,longs,shorts);
@@ -73,9 +71,15 @@ best_portfolio_t = max_heatmap_t[1];
 best_short_t = shorts[max_heatmap_t[2][2]];
 best_long_t = longs[max_heatmap_t[2][1]];
 
-println("\nbest portfolio parallel is: ",best_portfolio_t);
+println("");
+println("Initial investment: ",investment);
+println("With BUY and HODL you have: ",df.Price[end]*investment/df.Price[1]);
+println(" ");
+
+println("best portfolio parallel is: ",best_portfolio_t);
 println("best short window is: ",best_short_t);
 println("best long window is: ",best_long_t);
+
 
 #end     # end let
 
@@ -83,5 +87,20 @@ println("best long window is: ",best_long_t);
 # display(heatmap(shorts, longs, heat_map,title="best price heat map",xlabel="short",ylabel="long"))
 
 # plot the heatmap
-display(heatmap(shorts, longs, heat_map_t,title="best price heat map parallel",xlabel="short",ylabel="long"))
+p=heatmap(shorts, longs, heat_map_t,title="best price heat map parallel",xlabel="short",ylabel="long");
+savefig(p,"heatmap.pdf");
+
+best_df = backtest_engine(df, investment,best_long_t,best_short_t);
+
+# compute the long and short SMA
+SMA_long = sma(df,best_long_t);
+SMA_short = sma(df,best_short_t);
+
+plot(best_df.Portfolio/best_df.Portfolio[1],label="Portfolio");#,ylim=(0.7, best_portfolio_t*1.1));
+plot!(df.Price/df.Price[1],label="Price");
+plot!(SMA_long/df.Price[1],label="long_SMA");
+plot!(SMA_short/df.Price[1],label="short_SMA");
+savefig("best_portfolio.pdf");
+
+
 
